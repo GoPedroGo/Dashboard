@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dashboard">
+<title>Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    width: 100%; height: 100%;
+    background: #0a0f1e;
+    overflow: hidden;
+  }
+  #dash {
+    width: 100vw; height: 100vh;
+    background: #0a0f1e;
+    font-family: 'Figtree', system-ui, sans-serif;
+    color: #fff;
+    display: grid;
+    grid-template-columns: 37% 1fr;
+    overflow: hidden;
+    position: relative;
+  }
+  #bg-grad {
+    position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse at 20% 20%, rgba(30,60,120,0.5) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 80%, rgba(20,80,60,0.35) 0%, transparent 55%),
+      radial-gradient(ellipse at 70% 10%, rgba(80,40,120,0.3) 0%, transparent 45%);
+  }
+  .col-left {
+    display: flex; flex-direction: column;
+    padding: 5vh 3vw 4vh 4vw;
+    border-right: 1px solid rgba(255,255,255,0.08);
+    position: relative; z-index: 2;
+  }
+  .col-right {
+    display: flex; flex-direction: column;
+    padding: 4vh 4vw 3vh 3vw;
+    position: relative; z-index: 2;
+    overflow: hidden;
+  }
+
+  /* CLOCK */
+  #clock-row { display: flex; align-items: baseline; }
+  #clock-time { font-size: clamp(48px, 10vw, 96px); font-weight: 300; letter-spacing: -0.04em; line-height: 1; font-variant-numeric: tabular-nums; }
+  #clock-seconds { font-size: clamp(30px, 6vw, 58px); font-weight: 300; color: rgba(255,255,255,0.4); letter-spacing: -0.03em; margin-left: 4px; }
+  #clock-date { font-size: clamp(13px, 1.6vw, 19px); font-weight: 400; color: rgba(255,255,255,0.65); margin-top: 6px; }
+  #clock-tz { font-size: clamp(10px, 1.1vw, 13px); color: rgba(255,255,255,0.3); margin-top: 2px; letter-spacing: 1px; text-transform: uppercase; }
+
+  /* CALENDAR */
+  .cal-wrap {
+    margin-top: 3vh;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 18px;
+    padding: 2vh 1.5vw;
+    flex: 1;
+    display: flex; flex-direction: column;
+  }
+  .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5vh; }
+  .cal-month { font-size: clamp(13px, 1.4vw, 17px); font-weight: 600; color: rgba(255,255,255,0.9); letter-spacing: 0.5px; }
+  .cal-year { font-size: clamp(13px, 1.4vw, 17px); font-weight: 300; color: rgba(255,255,255,0.4); }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; flex: 1; align-content: start; }
+  .cal-dow { font-size: clamp(9px, 0.9vw, 12px); font-weight: 500; color: rgba(255,255,255,0.35); text-align: center; padding-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .cal-day {
+    aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+    font-size: clamp(11px, 1.2vw, 16px); font-weight: 400; color: rgba(255,255,255,0.7);
+    border-radius: 50%; margin: 1px auto; width: 90%;
+  }
+  .cal-day.today { background: #4f8ff7; color: #fff; font-weight: 600; box-shadow: 0 0 16px rgba(79,143,247,0.5); }
+  .cal-day.other-month { color: rgba(255,255,255,0.18); }
+  .cal-day.weekend { color: rgba(255,255,255,0.45); }
+  .cal-day.today.weekend { color: #fff; }
+
+  /* WEATHER */
+  .weather-location { font-size: clamp(10px, 1.1vw, 13px); font-weight: 500; color: rgba(255,255,255,0.5); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px; }
+  .weather-current-row { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 6px; }
+  .weather-temp-big { font-size: clamp(44px, 7.5vw, 80px); font-weight: 300; letter-spacing: -0.04em; line-height: 1; }
+  .weather-temp-unit { font-size: clamp(22px, 3.5vw, 40px); font-weight: 300; color: rgba(255,255,255,0.5); }
+  .weather-icon-big { font-size: clamp(40px, 6vw, 66px); line-height: 1; margin-top: 4px; }
+  .weather-desc { font-size: clamp(13px, 1.5vw, 17px); color: rgba(255,255,255,0.6); margin-bottom: 2px; }
+  .weather-feels { font-size: clamp(11px, 1.2vw, 14px); color: rgba(255,255,255,0.4); margin-bottom: 2vh; }
+  .section-label { font-size: clamp(9px, 0.95vw, 12px); font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 1vh; display: flex; align-items: center; gap: 6px; }
+  .section-label::after { content:''; flex:1; height:0.5px; background:rgba(255,255,255,0.1); }
+
+  /* HOURLY */
+  .hourly-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; margin-bottom: 2vh; }
+  .hourly-scroll::-webkit-scrollbar { display: none; }
+  .hour-card {
+    flex: 0 0 clamp(56px, 6vw, 72px);
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 14px; padding: 10px 6px;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .hour-card.now { background: rgba(79,143,247,0.18); border-color: rgba(79,143,247,0.4); }
+  .hour-label { font-size: clamp(9px, 0.9vw, 12px); color: rgba(255,255,255,0.45); font-weight: 500; }
+  .hour-card.now .hour-label { color: #7ab3ff; font-weight: 600; }
+  .hour-icon { font-size: clamp(16px, 2vw, 24px); line-height: 1; }
+  .hour-temp { font-size: clamp(12px, 1.3vw, 16px); font-weight: 500; }
+  .hour-precip { font-size: clamp(9px, 0.85vw, 11px); color: #64a8ff; font-weight: 500; }
+
+  /* DAILY */
+  .daily-list { display: flex; flex-direction: column; gap: 5px; }
+  .day-row {
+    display: grid; grid-template-columns: 80px 28px 1fr 50px;
+    align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px; padding: 8px 12px;
+  }
+  .day-name { font-size: clamp(12px, 1.3vw, 15px); font-weight: 500; color: rgba(255,255,255,0.8); }
+  .day-icon { font-size: clamp(14px, 1.6vw, 20px); text-align: center; }
+  .day-bar-wrap { display: flex; align-items: center; gap: 6px; }
+  .day-lo { font-size: clamp(10px, 1.1vw, 13px); color: rgba(255,255,255,0.35); min-width: 22px; text-align: right; }
+  .day-bar { flex: 1; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.1); overflow: hidden; }
+  .day-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #4a8ff0, #f5a623); }
+  .day-hi { font-size: clamp(10px, 1.1vw, 13px); color: rgba(255,255,255,0.8); min-width: 22px; font-weight: 600; }
+  .day-temps { font-size: clamp(12px, 1.3vw, 15px); font-weight: 500; color: rgba(255,255,255,0.8); text-align: right; }
+  .day-temps span { color: rgba(255,255,255,0.35); font-weight: 400; font-size: 0.85em; }
+
+  #weather-status { font-size: clamp(9px, 0.9vw, 12px); color: rgba(255,255,255,0.25); margin-top: auto; padding-top: 6px; }
+</style>
+</head>
+<body>
+<div id="dash">
+  <div id="bg-grad"></div>
+
+  <!-- LEFT -->
+  <div class="col-left">
+    <div>
+      <div id="clock-row">
+        <span id="clock-time">00:00</span><span id="clock-seconds">:00</span>
+      </div>
+      <div id="clock-date">Wednesday, 27 May 2026</div>
+      <div id="clock-tz">London · BST (GMT+1)</div>
+    </div>
+    <div class="cal-wrap">
+      <div class="cal-header">
+        <span class="cal-month" id="cal-month">May</span>
+        <span class="cal-year" id="cal-year">2026</span>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="col-right">
+    <div class="weather-location">Clapham Common, London</div>
+    <div class="weather-current-row">
+      <div>
+        <div style="display:flex;align-items:flex-start">
+          <span class="weather-temp-big" id="wx-temp">—</span>
+          <span class="weather-temp-unit">°C</span>
+        </div>
+        <div class="weather-desc" id="wx-desc">Loading…</div>
+        <div class="weather-feels" id="wx-feels"></div>
+      </div>
+      <div class="weather-icon-big" id="wx-icon-big">🌤️</div>
+    </div>
+
+    <div class="section-label">Today · Hourly</div>
+    <div class="hourly-scroll" id="hourly-row"></div>
+
+    <div class="section-label">Rest of the Week</div>
+    <div class="daily-list" id="daily-list"></div>
+
+    <div id="weather-status">Fetching weather…</div>
+  </div>
+</div>
+
+<script>
+const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function londonNow() {
+  return new Date(new Date().toLocaleString('en-US', {timeZone: 'Europe/London'}));
+}
+
+function updateClock() {
+  const now = londonNow();
+  document.getElementById('clock-time').textContent = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('clock-seconds').textContent = ':' + String(now.getSeconds()).padStart(2,'0');
+  const isBST = now.getMonth() >= 2 && now.getMonth() <= 9;
+  document.getElementById('clock-tz').textContent = 'London · ' + (isBST ? 'BST (GMT+1)' : 'GMT');
+  document.getElementById('clock-date').textContent = DAYS[now.getDay()] + ', ' + now.getDate() + ' ' + MONTHS[now.getMonth()] + ' ' + now.getFullYear();
+}
+
+function buildCalendar() {
+  const now = londonNow();
+  const y = now.getFullYear(), m = now.getMonth(), today = now.getDate();
+  document.getElementById('cal-month').textContent = MONTHS[m];
+  document.getElementById('cal-year').textContent = y;
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+  ['M','T','W','T','F','S','S'].forEach(d => {
+    const el = document.createElement('div'); el.className = 'cal-dow'; el.textContent = d; grid.appendChild(el);
+  });
+  const firstDow = new Date(y, m, 1).getDay();
+  const start = firstDow === 0 ? 6 : firstDow - 1;
+  const prevDays = new Date(y, m, 0).getDate();
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  for (let i = 0; i < start; i++) {
+    const el = document.createElement('div'); el.className = 'cal-day other-month';
+    el.textContent = prevDays - start + 1 + i; grid.appendChild(el);
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    const el = document.createElement('div');
+    const dow = new Date(y, m, d).getDay();
+    let cls = 'cal-day';
+    if (dow === 0 || dow === 6) cls += ' weekend';
+    if (d === today) cls += ' today';
+    el.className = cls; el.textContent = d; grid.appendChild(el);
+  }
+  const trailing = 42 - start - daysInMonth;
+  for (let i = 1; i <= trailing; i++) {
+    const el = document.createElement('div'); el.className = 'cal-day other-month'; el.textContent = i; grid.appendChild(el);
+  }
+}
+
+const WX = {
+  0:['Clear sky','☀️'],1:['Mainly clear','🌤️'],2:['Partly cloudy','⛅'],3:['Overcast','☁️'],
+  45:['Foggy','🌫️'],48:['Icy fog','🌫️'],51:['Light drizzle','🌦️'],53:['Drizzle','🌦️'],
+  55:['Heavy drizzle','🌧️'],61:['Slight rain','🌧️'],63:['Rain','🌧️'],65:['Heavy rain','🌧️'],
+  71:['Slight snow','🌨️'],73:['Snow','❄️'],75:['Heavy snow','❄️'],77:['Snow grains','🌨️'],
+  80:['Showers','🌦️'],81:['Showers','🌧️'],82:['Heavy showers','⛈️'],
+  85:['Snow showers','🌨️'],86:['Heavy snow showers','🌨️'],95:['Thunderstorm','⛈️'],
+  96:['Thunderstorm+hail','⛈️'],99:['Thunderstorm+hail','⛈️']
+};
+function wx(code) { return WX[code] || ['Unknown','🌡️']; }
+
+async function fetchWeather() {
+  try {
+    const url = 'https://api.open-meteo.com/v1/forecast?latitude=51.4613&longitude=-0.1481&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m&hourly=temperature_2m,weather_code,precipitation_probability&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Europe%2FLondon&forecast_days=8';
+    const res = await fetch(url);
+    const data = await res.json();
+    renderWeather(data);
+    const t = londonNow();
+    document.getElementById('weather-status').textContent = 'Updated ' + t.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) + ' · Open-Meteo';
+  } catch(e) {
+    document.getElementById('weather-status').textContent = 'Weather unavailable — check connection';
+  }
+}
+
+function renderWeather(data) {
+  const cur = data.current;
+  const [desc, icon] = wx(cur.weather_code);
+  document.getElementById('wx-temp').textContent = Math.round(cur.temperature_2m);
+  document.getElementById('wx-desc').textContent = desc;
+  document.getElementById('wx-feels').textContent = 'Feels like ' + Math.round(cur.apparent_temperature) + '°C · Wind ' + Math.round(cur.wind_speed_10m) + ' km/h';
+  document.getElementById('wx-icon-big').textContent = icon;
+
+  const now = londonNow();
+  const row = document.getElementById('hourly-row');
+  row.innerHTML = '';
+  let count = 0;
+  for (let i = 0; i < data.hourly.time.length && count < 14; i++) {
+    const t = new Date(data.hourly.time[i]);
+    if (t < new Date(now.getTime() - 30*60000)) continue;
+    const [, hIcon] = wx(data.hourly.weather_code[i]);
+    const isNow = t.getHours() === now.getHours() && t.getDate() === now.getDate();
+    const card = document.createElement('div');
+    card.className = 'hour-card' + (isNow ? ' now' : '');
+    const label = isNow ? 'Now' : t.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    const prec = data.hourly.precipitation_probability[i];
+    card.innerHTML = '<div class="hour-label">' + label + '</div><div class="hour-icon">' + hIcon + '</div><div class="hour-temp">' + Math.round(data.hourly.temperature_2m[i]) + '°</div>' + (prec > 0 ? '<div class="hour-precip">' + prec + '%</div>' : '');
+    row.appendChild(card); count++;
+  }
+
+  const list = document.getElementById('daily-list');
+  list.innerHTML = '';
+  const maxes = data.daily.temperature_2m_max.slice(1,8);
+  const mins = data.daily.temperature_2m_min.slice(1,8);
+  const rMin = Math.min(...mins), rMax = Math.max(...maxes);
+  for (let i = 1; i < Math.min(data.daily.time.length, 8); i++) {
+    const d = new Date(data.daily.time[i] + 'T12:00:00');
+    const label = d.getDate() === now.getDate() ? 'Today' : DAYS[d.getDay()].slice(0,3);
+    const [, dIcon] = wx(data.daily.weather_code[i]);
+    const hi = Math.round(data.daily.temperature_2m_max[i]);
+    const lo = Math.round(data.daily.temperature_2m_min[i]);
+    const bL = ((lo - rMin)/(rMax - rMin)*100).toFixed(1);
+    const bW = (((hi - lo)/(rMax - rMin))*100).toFixed(1);
+    const r = document.createElement('div'); r.className = 'day-row';
+    r.innerHTML = '<div class="day-name">' + label + '</div><div class="day-icon">' + dIcon + '</div>' +
+      '<div class="day-bar-wrap"><span class="day-lo">' + lo + '°</span><div class="day-bar"><div class="day-bar-fill" style="margin-left:' + bL + '%;width:' + bW + '%"></div></div><span class="day-hi">' + hi + '°</span></div>' +
+      '<div class="day-temps">' + hi + '° <span>/ ' + lo + '°</span></div>';
+    list.appendChild(r);
+  }
+}
+
+updateClock(); buildCalendar(); fetchWeather();
+setInterval(updateClock, 1000);
+setInterval(buildCalendar, 60000);
+setInterval(fetchWeather, 10 * 60 * 1000);
+</script>
+</body>
+</html>
