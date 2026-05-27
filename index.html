@@ -89,26 +89,35 @@
   .section-label { font-size: clamp(9px, 0.95vw, 12px); font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 1vh; display: flex; align-items: center; gap: 6px; }
   .section-label::after { content:''; flex:1; height:0.5px; background:rgba(255,255,255,0.1); }
 
-  /* HOURLY */
-  .hourly-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; margin-bottom: 2vh; }
-  .hourly-scroll::-webkit-scrollbar { display: none; }
+  /* HOURLY (Optimized container height and internal structure to protect text layout) */
+  .hourly-scroll { 
+    display: flex; 
+    flex-wrap: wrap;
+    gap: 8px; 
+    overflow: hidden; 
+    height: clamp(92px, 11.5vh, 120px);
+    margin-bottom: 2vh; 
+  }
   .hour-card {
-    flex: 0 0 clamp(56px, 6vw, 72px);
+    flex: 1 1 clamp(56px, 6vw, 72px);
+    max-width: clamp(56px, 6vw, 72px);
     background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.09);
-    border-radius: 14px; padding: 10px 6px;
-    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    border-radius: 14px; padding: 8px 4px;
+    display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+    height: 100%;
   }
   .hour-card.now { background: rgba(79,143,247,0.18); border-color: rgba(79,143,247,0.4); }
-  .hour-label { font-size: clamp(9px, 0.9vw, 12px); color: rgba(255,255,255,0.45); font-weight: 500; }
+  .hour-label { font-size: clamp(9px, 0.9vw, 11px); color: rgba(255,255,255,0.45); font-weight: 500; line-height: 1.1; }
   .hour-card.now .hour-label { color: #7ab3ff; font-weight: 600; }
-  .hour-icon { font-size: clamp(16px, 2vw, 24px); line-height: 1; }
-  .hour-temp { font-size: clamp(12px, 1.3vw, 16px); font-weight: 500; }
-  .hour-precip { font-size: clamp(9px, 0.85vw, 11px); color: #64a8ff; font-weight: 500; }
+  .hour-main-details { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .hour-icon { font-size: clamp(16px, 2vw, 22px); line-height: 1; }
+  .hour-temp { font-size: clamp(12px, 1.3vw, 15px); font-weight: 500; line-height: 1.1; }
+  .hour-precip { font-size: clamp(9px, 0.8vw, 10px); color: #64a8ff; font-weight: 600; line-height: 1; }
 
   /* DAILY */
   .daily-list { display: flex; flex-direction: column; gap: 5px; }
   .day-row {
-    display: grid; grid-template-columns: 80px 28px 1fr 50px;
+    display: grid; grid-template-columns: 65px 28px 1fr 75px;
     align-items: center; gap: 8px;
     background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
     border-radius: 12px; padding: 8px 12px;
@@ -120,7 +129,7 @@
   .day-bar { flex: 1; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.1); overflow: hidden; }
   .day-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #4a8ff0, #f5a623); }
   .day-hi { font-size: clamp(10px, 1.1vw, 13px); color: rgba(255,255,255,0.8); min-width: 22px; font-weight: 600; }
-  .day-temps { font-size: clamp(12px, 1.3vw, 15px); font-weight: 500; color: rgba(255,255,255,0.8); text-align: right; }
+  .day-temps { font-size: clamp(12px, 1.3vw, 15px); font-weight: 500; color: rgba(255,255,255,0.8); text-align: right; white-space: nowrap; }
   .day-temps span { color: rgba(255,255,255,0.35); font-weight: 400; font-size: 0.85em; }
 
   #weather-status { font-size: clamp(9px, 0.9vw, 12px); color: rgba(255,255,255,0.25); margin-top: auto; padding-top: 6px; }
@@ -130,7 +139,6 @@
 <div id="dash">
   <div id="bg-grad"></div>
 
-  <!-- LEFT -->
   <div class="col-left">
     <div>
       <div id="clock-row">
@@ -148,7 +156,6 @@
     </div>
   </div>
 
-  <!-- RIGHT -->
   <div class="col-right">
     <div class="weather-location">Clapham Common, London</div>
     <div class="weather-current-row">
@@ -267,7 +274,13 @@ function renderWeather(data) {
     card.className = 'hour-card' + (isNow ? ' now' : '');
     const label = isNow ? 'Now' : t.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
     const prec = data.hourly.precipitation_probability[i];
-    card.innerHTML = '<div class="hour-label">' + label + '</div><div class="hour-icon">' + hIcon + '</div><div class="hour-temp">' + Math.round(data.hourly.temperature_2m[i]) + '°</div>' + (prec > 0 ? '<div class="hour-precip">' + prec + '%</div>' : '');
+    
+    // Grouped center elements to let flex space-between push layout perfectly to limits
+    let innerHTML = '<div class="hour-label">' + label + '</div>';
+    innerHTML += '<div class="hour-main-details"><div class="hour-icon">' + hIcon + '</div><div class="hour-temp">' + Math.round(data.hourly.temperature_2m[i]) + '°</div></div>';
+    innerHTML += '<div class="hour-precip">' + (prec > 0 ? prec + '%' : '&nbsp;') + '</div>';
+    
+    card.innerHTML = innerHTML;
     row.appendChild(card); count++;
   }
 
